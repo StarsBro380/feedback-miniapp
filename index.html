@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Обратная связь</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: var(--tg-theme-hint-color, #8e8e93);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid var(--tg-theme-hint-color, #c6c6c8);
+            border-radius: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f2f2f7);
+            color: var(--tg-theme-text-color, #000000);
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #007aff);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .file-label {
+            display: block;
+            padding: 14px 16px;
+            background: var(--tg-theme-secondary-bg-color, #f2f2f7);
+            border: 1px dashed var(--tg-theme-hint-color, #c6c6c8);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--tg-theme-button-color, #007aff);
+        }
+        
+        .file-label input {
+            display: none;
+        }
+        
+        .file-list {
+            margin-top: 12px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--tg-theme-secondary-bg-color, #f2f2f7);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .file-item button {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+        
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color, #f2f2f7);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .btn:active {
+            opacity: 0.7;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #8e8e93);
+            margin-top: 4px;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-message h2 {
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+        
+        .success-message p {
+            color: var(--tg-theme-hint-color, #8e8e93);
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- Форма -->
+        <div id="form-container">
+            <h1>📝 Обратная связь</h1>
+            <p class="subtitle">Заполните форму, и мы ответим вам в ближайшее время</p>
+            
+            <div class="form-group">
+                <label for="name">Ваше имя</label>
+                <input type="text" id="name" placeholder="Как к вам обращаться?" maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Сообщение *</label>
+                <textarea id="message" placeholder="Опишите ваш вопрос или предложение..." maxlength="2000"></textarea>
+                <div class="char-count">
+                    <span id="char-count">0</span>/2000
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="file-label" for="file-input">
+                    📎 Прикрепить файлы (до 5)
+                    <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+                </label>
+                <div class="file-list" id="file-list"></div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-secondary" id="cancel-btn">Отмена</button>
+                <button class="btn btn-primary" id="submit-btn" disabled>Отправить</button>
+            </div>
+        </div>
+        
+        <!-- Успешная отправка -->
+        <div id="success-container" style="display: none;">
+            <div class="success-message">
+                <h2>✅ Обращение отправлено!</h2>
+                <p>Спасибо! Мы ответим вам в ближайшее время.</p>
+                <button class="btn btn-primary" id="close-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        tg.ready();
+        
+        // DOM элементы
+        const formContainer = document.getElementById('form-container');
+        const successContainer = document.getElementById('success-container');
+        const nameInput = document.getElementById('name');
+        const messageInput = document.getElementById('message');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const charCount = document.getElementById('char-count');
+        
+        // Хранилище файлов
+        let selectedFiles = [];
+        
+        // Установка имени пользователя из Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            nameInput.value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        }
+        
+        // Подсчёт символов
+        function updateCharCount() {
+            const length = messageInput.value.length;
+            charCount.textContent = length;
+            validateForm();
+        }
+        
+        // Валидация формы
+        function validateForm() {
+            const hasMessage = messageInput.value.trim().length > 0;
+            submitBtn.disabled = !hasMessage;
+        }
+        
+        // Отображение выбранных файлов
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name.length > 30 
+                    ? file.name.substring(0, 27) + '...' 
+                    : file.name;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '✕';
+                removeBtn.onclick = () => {
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                };
+                
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(removeBtn);
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        // Обработчик выбора файлов
+        fileInput.addEventListener('change', (e) => {
+            const newFiles = Array.from(e.target.files);
+            
+            if (selectedFiles.length + newFiles.length > 5) {
+                tg.showAlert('Максимум 5 файлов');
+                return;
+            }
+            
+            selectedFiles = [...selectedFiles, ...newFiles].slice(0, 5);
+            updateFileList();
+            fileInput.value = '';
+        });
+        
+        // Обработчик ввода сообщения
+        messageInput.addEventListener('input', updateCharCount);
+        
+        // Отправка формы
+        async function submitForm() {
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                tg.showAlert('Пожалуйста, напишите сообщение');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
+            
+            try {
+                // Подготовка данных
+                const formData = {
+                    name: nameInput.value.trim() || 'Гость',
+                    message: message,
+                    files: await Promise.all(selectedFiles.map(async (file) => {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                resolve({
+                                    name: file.name,
+                                    type: file.type,
+                                    data: e.target.result
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }))
+                };
+                
+                // Отправка данных в бота
+                tg.sendData(JSON.stringify(formData));
+                
+                // Показываем успешное сообщение
+                formContainer.style.display = 'none';
+                successContainer.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                tg.showAlert('Ошибка отправки. Попробуйте ещё раз.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Отправить';
+            }
+        }
+        
+        submitBtn.addEventListener('click', submitForm);
+        
+        // Отмена
+        cancelBtn.addEventListener('click', () => {
+            if (messageInput.value.trim() || selectedFiles.length > 0) {
+                tg.showConfirm('Отменить обращение? Все данные будут потеряны.', (confirmed) => {
+                    if (confirmed) {
+                        tg.close();
+                    }
+                });
+            } else {
+                tg.close();
+            }
+        });
+        
+        // Закрытие после успешной отправки
+        closeBtn.addEventListener('click', () => {
+            tg.close();
+        });
+        
+        // Настройка темы
+        tg.onEvent('themeChanged', () => {
+            document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
+            document.body.style.color = tg.themeParams.text_color || '#000000';
+        });
+        
+        // Инициализация
+        updateCharCount();
+        validateForm();
+        
+        // Кнопка "Назад" в header
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            if (successContainer.style.display === 'block') {
+                tg.close();
+            } else if (messageInput.value.trim() || selectedFiles.length > 0) {
+                tg.showConfirm('Отменить обращение? Все данные будут потеряны.', (confirmed) => {
+                    if (confirmed) {
+                        tg.close();
+                    }
+                });
+            } else {
+                tg.close();
+            }
+        });
+    </script>
+</body>
+</html>
